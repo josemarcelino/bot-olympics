@@ -1,8 +1,8 @@
 
-#define MotorB1 11
-#define MotorB2 10
-#define MotorA2 9
-#define MotorA1 8
+#define MotorDir1 11
+#define MotorDir2 10
+#define MotorEsq2 8
+#define MotorEsq1 9
 #define MaxSpeed 150
 
 
@@ -54,11 +54,10 @@ void setup() {
   pinMode(MotorEsq1, OUTPUT);
   pinMode(MotorEsq2, OUTPUT);
   
-  Motores(30,30);
+  Motores(100,-100);
   
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
 }
