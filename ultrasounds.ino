@@ -5,8 +5,8 @@
 
 int maximumRange = 40;
 int minimumRange = 10;
-long durationRight durationLeft, distanceRight, distanceLeft;
-float mediaRight, mediaLeft, maxValueRight = 0.0f, maxValueLeft = 0.0f, minValueRight = 123125636322.0f, minValueLeft = 3124536323.0f;
+long durationRight, durationLeft, distanceRight, distanceLeft;
+float mediaRight, mediaLeft, maxValueRight = 0.0f, maxValueLeft = 0.0f, minValueRight = 123125.0f, minValueLeft = 31245.0f;
 float contador = 0.0f;
 
 
@@ -42,7 +42,7 @@ void loop() {
 
 	contador+=1;
 	mediaRight+=distanceRight;
-	medialeft+=distanceLeft;
+	mediaLeft+=distanceLeft;
 	if(maxValueLeft < distanceLeft) {
 		maxValueLeft = distanceLeft;
 	}
@@ -64,9 +64,19 @@ void loop() {
 		mediaRight/=contador;
 		mediaLeft/=contador;
 		contador = 0;
-		Serial.println("Media de Right: " + mediaRight + " || Media de Left: " + mediaLeft);
-		Serial.println("Menor Valor Right: " + minValueRight + " || Menor Valor Left: " + minValueLeft);
-		Serial.println("Maior Valor Right: " + maxValueRight + " || Maior Valor Left: " + maxValueLeft);
+		Serial.print("mediaRight: ");
+		Serial.print(mediaRight);
+		Serial.print(" || mediaLeft: ");
+		Serial.println(mediaLeft);
+		Serial.print("menor Valor Right: ");
+		Serial.print(minValueRight);
+		Serial.print(" || Menor Valor Left: ");
+		Serial.println(minValueLeft);
+		Serial.print("Maior Valor Right: ");
+		Serial.print(maxValueRight);
+		Serial.print(" || Maior Valor Left: ");
+		Serial.println(maxValueLeft);
+
 		mediaRight = 0.0f;
 		mediaLeft = 0.0f;
 		minValueRight = 21231425.0f;
