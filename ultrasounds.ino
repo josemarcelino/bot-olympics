@@ -42,14 +42,14 @@ void loop() {
 
 	//distanceRight = durationRight/58.2;
 	distanceLeft = durationLeft/58.2;
-	Ahead(100, 100);
+	Control(100, 100);
 	if(distanceLeft <= LIMIT_MAX) {
 		if(distanceLeft > WALL_DISTANCE && ajustedLeft == FALSE) {
-			rotateLeft(AJUSTANGLE);
+			RotateLeft(AJUSTANGLE);
 			ajustedLeft = TRUE;
 			ajustedRight = FALSE;
 		} else if(distanceLeft < WALL_DISTANCE && adjustedRight == FALSE) {
-			rotateRight(AJUSTANGLE);
+			RotateRight(AJUSTANGLE);
 			ajustedLeft = FALSE;
 			ajustedRight = TRUE;
 		} 
