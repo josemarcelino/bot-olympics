@@ -2,21 +2,27 @@
 #define echoPinRight 5
 #define trigPinLeft 2
 #define echoPinLeft 3
+#define WALL_DISTANCE 15
 #define TRUE 1
 #define FALSE 0
-
-#define colorPin A2
-
-#define colorWhite 0
+#define AJUSTANGLE 15
+#define LIMIT_MAX 30
 
 #define FORWARD_SPEED 100
-#define TIME_BY_DEGREE 10 
 
 #define motorRight1 11
 #define motorRight2 10
 #define motorLeft2 8
 #define motorLeft1 9
 #define MaxSpeed 150
+#define offSet 40
+#define TIME_BY_DEGREE 10 
+
+#define patrolTime 3
+
+//flame related
+#define flameDoubt 30
+#define flameCertain 90
 
 int maximumRange = 40;
 int minimumRange = 10;
@@ -35,37 +41,6 @@ int isSearching = FALSE;
 long int rotateTimer;
 
 int globalTimer = 0;
-
-int collisionDistance = 20;
-
-void rotateLeft(){
-	Control(velocityLeft+offSet,velocityRight);
-}
-
-void rotateRight() {
-	Control(velocityLeft, velocityRight+offSet);
-}
-
-//degrees to rotate, side as -1 or 1 to define left or right, respectively
-void rotateInPlace(int degrees, int side) {
-	//CAREFULL! if values are not calibrated (because of batteries), adjust 'offset'
-	Control(-offSet*side/1.4, offSet*side/1.4);
-	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
-}
-
-int canSeeFlames() {
-	int flameLevel = analogRead(A1);
-	if (flameLevel >= flameCertain) {
-		digitalWrite(7, HIGH);
-		return 1;
-	} else if (flameLevel >= flameDoubt) {
-		digitalWrite(7, LOW);
-		return 0;
-	} else {
-		digitalWrite(7, LOW);
-		return -1;
-	}
-}
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
@@ -102,6 +77,35 @@ void Control(int velocityLeft, int velocityRight) {
 	}
 }
 
+void rotateLeft(){
+	Control(velocityLeft+offSet,velocityRight);
+}
+
+void rotateRight() {
+	Control(velocityLeft, velocityRight+offSet);
+}
+
+//degrees to rotate, side as -1 or 1 to define left or right, respectively
+void rotateInPlace(int degrees, int side) {
+	//CAREFULL! if values are not calibrated (because of batteries), adjust 'offset'
+	Control(-offSet*side/1.4, offSet*side/1.4);
+	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
+}
+
+int canSeeFlames() {
+	int flameLevel = analogRead(A1);
+	if (flameLevel >= flameCertain) {
+		digitalWrite(7, HIGH);
+		return 1;
+	} else if (flameLevel >= flameDoubt) {
+		digitalWrite(7, LOW);
+		return 0;
+	} else {
+		digitalWrite(7, LOW);
+		return -1;
+	}
+}
+
 void setup() {
 	Serial.begin(9600);
 	pinMode(trigPinLeft, OUTPUT);
@@ -113,8 +117,6 @@ void setup() {
 	pinMode(motorLeft1, OUTPUT);
 	pinMode(motorLeft2, OUTPUT);
 
-	pinMode(A2, INPUT);
-
 	//flame sensor
 	pinMode(A1, INPUT);
 	//flame pin
@@ -124,19 +126,74 @@ void setup() {
 	pinMode(13, OUTPUT);
 
 	timeout = LIMIT_MAX*58.2f;
+	globalTimer = millis();
 }
 
-void insideRoom() {
-	int value = digitalRead(colorPin);
-	if(value == colorWhite) {
-		color_clock = 1;
+int foundWall() {
+	//Serial.print("Wall at ");
+	//Serial.println(distanceRight);
+	return (distanceRight != 0) ? TRUE : FALSE;
+}
+
+//just light LED up when right sensor is seing a wall
+void checkForWalls() {
+	if (foundWall() == TRUE) {
+		digitalWrite(13, HIGH);
 	} else {
-		color_clock = 0;
+		digitalWrite(13, LOW);
 	}
-
 }
 
-void encostadoParede() {
+//slowly rotates around to check for flames
+//TODO if a flame is found, go towards it
+void checkSurroundings() {
+	/*
+	rotateInPlace(30, 1);	//rotate 30 degrees to the right
+	//get flame readings
+	rotateInPlace(30, 1);	//rotate again
+	//get flame readings
+	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
+	*/
+	//Control(0, 0);
+	//delay(100);
+}
+
+void loop() {
+
+	digitalWrite(trigPinLeft, LOW);
+	delayMicroseconds(2);
+
+	digitalWrite(trigPinLeft, HIGH);
+	delayMicroseconds(10);
+
+	digitalWrite(trigPinLeft, LOW);
+	durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
+
+	digitalWrite(trigPinRight, LOW);
+	delayMicroseconds(2);
+
+	digitalWrite(trigPinRight, HIGH);
+	delayMicroseconds(10);
+
+	digitalWrite(trigPinRight, LOW);
+
+	durationRight = pulseIn(echoPinRight, HIGH, timeout);
+
+	distanceLeft = durationLeft/58.2;
+	distanceRight = durationRight/58.2;
+
+	Serial.println(canSeeFlames());
+
+	//if already was walking for more than 'patrolTime'
+	if (millis()-globalTimer >= patrolTime) {
+		/*
+		checkSurroundings();		//look around for flame
+		globalTimer = millis();		//update timer
+		*/
+		digitalWrite(7, HIGH);
+	} else {
+		digitalWrite(7, LOW);
+	}
 
 	//for DEBUG purposes, checks if 'right sensor' is seing a wall
 	checkForWalls();
@@ -170,54 +227,7 @@ void encostadoParede() {
 	lastDistanceRight = distanceRight;
 }
 
-void zigZag() {
-	if(distanceRight >= collisionDistance) {
-		rotateLeft();
-		delay(140*TIME_BY_DEGREE);
-		rotateRight();
-		delay(140*TIME_BY_DEGREE);
-	} else {
-		rotateinPlace(90, 1)
-	}
 
-}
-
-void loop() {
-	digitalWrite(trigPinLeft, LOW);
-	delayMicroseconds(2);
-
-	digitalWrite(trigPinLeft, HIGH);
-	delayMicroseconds(10);
-
-	digitalWrite(trigPinLeft, LOW);
-	durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
-
-	digitalWrite(trigPinRight, LOW);
-	delayMicroseconds(2);
-
-	digitalWrite(trigPinRight, HIGH);
-	delayMicroseconds(10);
-
-	digitalWrite(trigPinRight, LOW);
-
-	durationRight = pulseIn(echoPinRight, HIGH, timeout);
-
-	distanceLeft = durationLeft/58.2;
-	distanceRight = durationRight/58.2;
-
-
-	Control(FORWARD_SPEED, FORWARD_SPEED);
-
-	//se dentro de uma sala
-	if(color_clock == 1)  {
-		encostadoParede();
-
-	} else {
-		zigZag();
-	}
-
-
-}
 
 
 
