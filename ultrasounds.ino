@@ -94,7 +94,6 @@ void rotateInPlace(int degrees, int side) {
 
 int canSeeFlames() {
 	int flameLevel = analogRead(A1);
-	Serial.println(flameLevel);
 	if (flameLevel >= flameCertain) {
 		digitalWrite(7, HIGH);
 		return 1;
@@ -148,11 +147,15 @@ void checkForWalls() {
 //slowly rotates around to check for flames
 //TODO if a flame is found, go towards it
 void checkSurroundings() {
+	/*
 	rotateInPlace(30, 1);	//rotate 30 degrees to the right
 	//get flame readings
 	rotateInPlace(30, 1);	//rotate again
 	//get flame readings
 	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
+	*/
+	//Control(0, 0);
+	//delay(100);
 }
 
 void loop() {
@@ -180,12 +183,16 @@ void loop() {
 	distanceRight = durationRight/58.2;
 
 	Serial.println(canSeeFlames());
-	delay(100);
 
 	//if already was walking for more than 'patrolTime'
 	if (millis()-globalTimer >= patrolTime) {
+		/*
 		checkSurroundings();		//look around for flame
 		globalTimer = millis();		//update timer
+		*/
+		digitalWrite(7, HIGH);
+	} else {
+		digitalWrite(7, LOW);
 	}
 
 	//for DEBUG purposes, checks if 'right sensor' is seing a wall
@@ -214,8 +221,8 @@ void loop() {
 			rotateLeft();
 		}
 	}
-	/*Serial.print("VALUE: ");
-	Serial.println(distanceLeft);*/
+	Serial.print("VALUE: ");
+	Serial.println(distanceRight);
 
 	lastDistanceRight = distanceRight;
 }
