@@ -2,11 +2,13 @@
 #define echoPinRight 5
 #define trigPinLeft 2
 #define echoPinLeft 3
-#define WALL_DISTANCE 20
+#define WALL_DISTANCE 15
 #define TRUE 1
 #define FALSE 0
 #define AJUSTANGLE 15
-#define LIMIT_MAX 40
+#define LIMIT_MAX 30
+
+#define FORWARD_SPEED 100
 
 #define motorRight1 11
 #define motorRight2 10
@@ -14,11 +16,12 @@
 #define motorLeft1 9
 #define MaxSpeed 150
 #define offSet 40
-#define TIME_BY_DEGREE 20 
+#define TIME_BY_DEGREE 10 
 
 int maximumRange = 40;
 int minimumRange = 10;
 long durationRight, durationLeft, distanceRight, distanceLeft;
+long lastDistanceRight = 0;
 float mediaRight, mediaLeft, maxValueRight = 0.0f, maxValueLeft = 0.0f, minValueRight = 123125.0f, minValueLeft = 31245.0f;
 float contador = 0.0f;
 int ajustedLeft = FALSE;
@@ -27,6 +30,8 @@ int ajustedRight = FALSE;
 int velocityRight = 50;
 int velocityLeft = 50;
 
+int timeout;
+int isSearching = FALSE;
 long int rotateTimer;
 
 void Control(int velocityLeft, int velocityRight) {
@@ -72,6 +77,10 @@ void rotateRight() {
 	Control(velocityLeft, velocityRight+offSet);
 }
 
+void rotateInPlace() {
+	Control(-offSet/1.4, offSet/1.4);
+}
+
 void setup() {
 	Serial.begin(9600);
 	pinMode(trigPinLeft, OUTPUT);
@@ -82,6 +91,12 @@ void setup() {
 	pinMode(motorRight2, OUTPUT);
 	pinMode(motorLeft1, OUTPUT);
 	pinMode(motorLeft2, OUTPUT);
+
+	timeout = LIMIT_MAX*58.2f;
+}
+
+int foundWay() {
+	return (distanceRight != 0 && (lastDistanceRight-distanceRight <= -20 || lastDistanceRight-distanceRight >= 20)) ? TRUE : FALSE;
 }
 
 
@@ -94,7 +109,7 @@ void loop() {
 	delayMicroseconds(10);
 
 	digitalWrite(trigPinLeft, LOW);
-	durationLeft = pulseIn(echoPinLeft, HIGH, 3500);
+	durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
 
 	digitalWrite(trigPinRight, LOW);
 	delayMicroseconds(2);
@@ -104,7 +119,7 @@ void loop() {
 
 	digitalWrite(trigPinRight, LOW);
 
-	durationRight = pulseIn(echoPinRight, HIGH, 3500);
+	durationRight = pulseIn(echoPinRight, HIGH, timeout);
 
 	//findFire
 	//findGap
@@ -112,14 +127,24 @@ void loop() {
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
-	if(distanceRight <= LIMIT_MAX && distanceRight != 0) {
+	if (foundWay() == TRUE) {
+		pinMode(13, OUTPUT);
+		digitalWrite(13, HIGH);
+	} else {
+		digitalWrite(13, LOW);
+	}
+
+	if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+		isSearching = FALSE;
 		Control(0, 0);
 		Serial.println("Rotating Right (IF)");
 		rotateTimer = millis();
-		rotateRight();
+		//rotateRight();
+		rotateInPlace();
 		while (millis() - rotateTimer < 90*TIME_BY_DEGREE);
 	} else {
 		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+			isSearching = FALSE;
 			if(distanceLeft > WALL_DISTANCE) {
 				rotateLeft();
 				Serial.println("Rotating Left");
@@ -128,7 +153,7 @@ void loop() {
 				Serial.println("Rotating Right");
 			} else {
 				Serial.println("Moving ahead");
-				Control(50, 50);
+				Control(FORWARD_SPEED, FORWARD_SPEED);
 			}
 		} else {
 			Serial.println("Rotating Left");
@@ -137,6 +162,8 @@ void loop() {
 	}
 	/*Serial.print("VALUE: ");
 	Serial.println(distanceLeft);*/
+
+	lastDistanceRight = distanceRight;
 }
 
 
