@@ -1,4 +1,8 @@
-void Ahead(int velocityLeft, int velocityRight) {
+#define FACTOR 20
+#define velocityRight 50
+#define velocityLeft 50
+
+void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
 		if (velocityLeft > MaxSpeed){
 			velocityLeft = MaxSpeed;
@@ -31,4 +35,12 @@ void Ahead(int velocityLeft, int velocityRight) {
 		analogWrite(motorLeft1, velocityRight);
 		digitalWrite(motorLeft2, 0);
 	}
+}
+
+void RotateRight(){
+	Control(velocityLeft,velocityRight-FACTOR);
+}
+
+void RotateLeft() {
+	Control(velocityLeft-FACTOR, velocityRight);
 }
