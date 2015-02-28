@@ -1,4 +1,4 @@
-#define trigPinRight 4
+/*#define trigPinRight 4
 #define echoPinRight 5
 #define trigPinLeft 2
 #define echoPinLeft 3
@@ -88,12 +88,12 @@ void loop() {
 		minValueLeft = 2847358.0f;
 		maxValueLeft = 0.0f;
 		maxValueRight = 0.0f;
-		*/
+		
 	//}
 	
 
 }
-
+*/
 
 
 
