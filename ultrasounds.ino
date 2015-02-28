@@ -14,7 +14,7 @@
 #define motorLeft1 9
 #define MaxSpeed 150
 #define offSet 40
-#define TIME_BY_DEGREE 80 
+#define TIME_BY_DEGREE 20 
 
 int maximumRange = 40;
 int minimumRange = 10;
@@ -27,6 +27,7 @@ int ajustedRight = FALSE;
 int velocityRight = 50;
 int velocityLeft = 50;
 
+long int rotateTimer;
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
@@ -89,19 +90,20 @@ void loop() {
 	digitalWrite(trigPinLeft, LOW);
 	delayMicroseconds(2);
 
-	digitalWrite(trigPinRight, LOW);
-	delayMicroseconds(2);
-
 	digitalWrite(trigPinLeft, HIGH);
 	delayMicroseconds(10);
+
+	digitalWrite(trigPinLeft, LOW);
+	durationLeft = pulseIn(echoPinLeft, HIGH, 3500);
+
+	digitalWrite(trigPinRight, LOW);
+	delayMicroseconds(2);
 
 	digitalWrite(trigPinRight, HIGH);
 	delayMicroseconds(10);
 
-	digitalWrite(trigPinLeft, LOW);
 	digitalWrite(trigPinRight, LOW);
 
-	durationLeft = pulseIn(echoPinLeft, HIGH, 3500);
 	durationRight = pulseIn(echoPinRight, HIGH, 3500);
 
 	//findFire
@@ -112,7 +114,10 @@ void loop() {
 
 	if(distanceRight <= LIMIT_MAX && distanceRight != 0) {
 		Control(0, 0);
+		Serial.println("Rotating Right (IF)");
+		rotateTimer = millis();
 		rotateRight();
+		while (millis() - rotateTimer < 90*TIME_BY_DEGREE);
 	} else {
 		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
 			if(distanceLeft > WALL_DISTANCE) {
@@ -125,13 +130,13 @@ void loop() {
 				Serial.println("Moving ahead");
 				Control(50, 50);
 			}
-		}else {
+		} else {
 			Serial.println("Rotating Left");
 			rotateLeft();
 		}
 	}
-	Serial.print("VALUE: ");
-	Serial.println(distanceLeft);
+	/*Serial.print("VALUE: ");
+	Serial.println(distanceLeft);*/
 }
 
 
