@@ -206,7 +206,7 @@ void loop() {
 	distanceRight = durationRight/58.2;
 
 
-	Control(FORWARD_SPEED);
+	Control(FORWARD_SPEED, FORWARD_SPEED);
 
 	//se dentro de uma sala
 	if(color_clock == 1)  {
