@@ -20,6 +20,10 @@
 
 #define patrolTime 3
 
+//flame related
+#define flameDoubt 30
+#define flameCertain 90
+
 int maximumRange = 40;
 int minimumRange = 10;
 long durationRight, durationLeft, distanceRight, distanceLeft;
@@ -88,6 +92,21 @@ void rotateInPlace(int degrees, int side) {
 	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
 }
 
+int canSeeFlames() {
+	int flameLevel = analogRead(A1);
+	Serial.println(flameLevel);
+	if (flameLevel >= flameCertain) {
+		digitalWrite(7, HIGH);
+		return 1;
+	} else if (flameLevel >= flameDoubt) {
+		digitalWrite(7, LOW);
+		return 0;
+	} else {
+		digitalWrite(7, LOW);
+		return -1;
+	}
+}
+
 void setup() {
 	Serial.begin(9600);
 	pinMode(trigPinLeft, OUTPUT);
@@ -99,20 +118,27 @@ void setup() {
 	pinMode(motorLeft1, OUTPUT);
 	pinMode(motorLeft2, OUTPUT);
 
+	//flame sensor
+	pinMode(A1, INPUT);
+	//flame pin
+	pinMode(7, OUTPUT);
+
+	//wall pin
+	pinMode(13, OUTPUT);
+
 	timeout = LIMIT_MAX*58.2f;
 	globalTimer = millis();
 }
 
 int foundWall() {
-	Serial.print("Wall at ");
-	Serial.println(distanceRight);
+	//Serial.print("Wall at ");
+	//Serial.println(distanceRight);
 	return (distanceRight != 0) ? TRUE : FALSE;
 }
 
 //just light LED up when right sensor is seing a wall
 void checkForWalls() {
 	if (foundWall() == TRUE) {
-		pinMode(13, OUTPUT);
 		digitalWrite(13, HIGH);
 	} else {
 		digitalWrite(13, LOW);
@@ -153,6 +179,9 @@ void loop() {
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
+	Serial.println(canSeeFlames());
+	delay(100);
+
 	//if already was walking for more than 'patrolTime'
 	if (millis()-globalTimer >= patrolTime) {
 		checkSurroundings();		//look around for flame
@@ -164,7 +193,7 @@ void loop() {
 
 	if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
 		Control(0, 0);
-		Serial.println("Rotating Right (IF)");
+		//Serial.println("Rotating Right (IF)");
 		rotateTimer = millis();
 		//rotateRight();
 		rotateInPlace(90, 1);
@@ -172,16 +201,16 @@ void loop() {
 		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
 			if(distanceLeft > WALL_DISTANCE) {
 				rotateLeft();
-				Serial.println("Rotating Left");
+				//Serial.println("Rotating Left");
 			} else if (distanceLeft < WALL_DISTANCE) {
 				rotateRight();
-				Serial.println("Rotating Right");
+				//Serial.println("Rotating Right");
 			} else {
-				Serial.println("Moving ahead");
+				//Serial.println("Moving ahead");
 				Control(FORWARD_SPEED, FORWARD_SPEED);
 			}
 		} else {
-			Serial.println("Rotating Left");
+			//Serial.println("Rotating Left");
 			rotateLeft();
 		}
 	}
