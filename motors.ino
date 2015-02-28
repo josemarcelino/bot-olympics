@@ -1,6 +1,7 @@
 #define offSet 20
 #define velocityRight 50
 #define velocityLeft 50
+#define TIME_BY_DEGREE 80 
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {

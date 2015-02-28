@@ -45,16 +45,16 @@ void loop() {
 	Control(100, 100);
 	if(distanceLeft <= LIMIT_MAX) {
 		if(distanceLeft > WALL_DISTANCE && ajustedLeft == FALSE) {
-			RotateLeft(AJUSTANGLE);
+			rotateLeft();
 			ajustedLeft = TRUE;
 			ajustedRight = FALSE;
 		} else if(distanceLeft < WALL_DISTANCE && adjustedRight == FALSE) {
-			RotateRight(AJUSTANGLE);
+			rotateRight();
 			ajustedLeft = FALSE;
 			ajustedRight = TRUE;
 		} 
 	} else {
-		rotateLeft(AJUSTANGLE);
+		rotateLeft();
 	}
 }
 
