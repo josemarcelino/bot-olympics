@@ -18,6 +18,8 @@
 #define offSet 40
 #define TIME_BY_DEGREE 10 
 
+#define patrolTime 3
+
 int maximumRange = 40;
 int minimumRange = 10;
 long durationRight, durationLeft, distanceRight, distanceLeft;
@@ -33,6 +35,8 @@ int velocityLeft = 50;
 int timeout;
 int isSearching = FALSE;
 long int rotateTimer;
+
+int globalTimer = 0;
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
@@ -77,8 +81,11 @@ void rotateRight() {
 	Control(velocityLeft, velocityRight+offSet);
 }
 
-void rotateInPlace() {
-	Control(-offSet/1.4, offSet/1.4);
+//degrees to rotate, side as -1 or 1 to define left or right, respectively
+void rotateInPlace(int degrees, int side) {
+	//CAREFULL! if values are not calibrated (because of batteries), adjust 'offset'
+	Control(-offSet*side/1.4, offSet*side/1.4);
+	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
 }
 
 void setup() {
@@ -93,12 +100,34 @@ void setup() {
 	pinMode(motorLeft2, OUTPUT);
 
 	timeout = LIMIT_MAX*58.2f;
+	globalTimer = millis();
 }
 
-int foundWay() {
-	return (distanceRight != 0 && (lastDistanceRight-distanceRight <= -20 || lastDistanceRight-distanceRight >= 20)) ? TRUE : FALSE;
+int foundWall() {
+	Serial.print("Wall at ");
+	Serial.println(distanceRight);
+	return (distanceRight != 0) ? TRUE : FALSE;
 }
 
+//just light LED up when right sensor is seing a wall
+void checkForWalls() {
+	if (foundWall() == TRUE) {
+		pinMode(13, OUTPUT);
+		digitalWrite(13, HIGH);
+	} else {
+		digitalWrite(13, LOW);
+	}
+}
+
+//slowly rotates around to check for flames
+//TODO if a flame is found, go towards it
+void checkSurroundings() {
+	rotateInPlace(30, 1);	//rotate 30 degrees to the right
+	//get flame readings
+	rotateInPlace(30, 1);	//rotate again
+	//get flame readings
+	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
+}
 
 void loop() {
 
@@ -121,30 +150,26 @@ void loop() {
 
 	durationRight = pulseIn(echoPinRight, HIGH, timeout);
 
-	//findFire
-	//findGap
-
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
-	if (foundWay() == TRUE) {
-		pinMode(13, OUTPUT);
-		digitalWrite(13, HIGH);
-	} else {
-		digitalWrite(13, LOW);
+	//if already was walking for more than 'patrolTime'
+	if (millis()-globalTimer >= patrolTime) {
+		checkSurroundings();		//look around for flame
+		globalTimer = millis();		//update timer
 	}
 
+	//for DEBUG purposes, checks if 'right sensor' is seing a wall
+	checkForWalls();
+
 	if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
-		isSearching = FALSE;
 		Control(0, 0);
 		Serial.println("Rotating Right (IF)");
 		rotateTimer = millis();
 		//rotateRight();
-		rotateInPlace();
-		while (millis() - rotateTimer < 90*TIME_BY_DEGREE);
+		rotateInPlace(90, 1);
 	} else {
 		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
-			isSearching = FALSE;
 			if(distanceLeft > WALL_DISTANCE) {
 				rotateLeft();
 				Serial.println("Rotating Left");
