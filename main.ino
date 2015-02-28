@@ -10,6 +10,8 @@ void setup() {
 	pinMode(motorLeft1, OUTPUT);
 	pinMode(motorLeft2, OUTPUT);
 	Ahead(30,30);
+	Ahead(30,0);
+	delay(100);
 }
 
 void loop() {
