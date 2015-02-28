@@ -7,6 +7,8 @@
 
 #define colorPin A2
 
+#define colorWhite 0
+
 #define FORWARD_SPEED 100
 
 #define motorRight1 11
@@ -32,6 +34,8 @@ int isSearching = FALSE;
 long int rotateTimer;
 
 int globalTimer = 0;
+
+int collisionDistance = 20;
 
 void rotateLeft(){
 	Control(velocityLeft+offSet,velocityRight);
@@ -121,9 +125,59 @@ void setup() {
 	timeout = LIMIT_MAX*58.2f;
 }
 
-int insideRoom() {
+void insideRoom() {
 	int value = digitalRead(colorPin);
-	return value;
+	if(value == colorWhite) {
+		color_clock = 1;
+	} else {
+		color_clock = 0;
+	}
+
+}
+
+void encostadoParede() {
+
+	//for DEBUG purposes, checks if 'right sensor' is seing a wall
+	checkForWalls();
+
+	if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+		Control(0, 0);
+		//Serial.println("Rotating Right (IF)");
+		rotateTimer = millis();
+		//rotateRight();
+		rotateInPlace(90, 1);
+	} else {
+		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+			if(distanceLeft > WALL_DISTANCE) {
+				rotateLeft();
+				//Serial.println("Rotating Left");
+			} else if (distanceLeft < WALL_DISTANCE) {
+				rotateRight();
+				//Serial.println("Rotating Right");
+			} else {
+				//Serial.println("Moving ahead");
+				Control(FORWARD_SPEED, FORWARD_SPEED);
+			}
+		} else {
+			//Serial.println("Rotating Left");
+			rotateLeft();
+		}
+	}
+	Serial.print("VALUE: ");
+	Serial.println(distanceRight);
+
+	lastDistanceRight = distanceRight;
+}
+
+void zigZag() {
+	if(distanceRight >= collisionDistance) {
+		rotateLeft();
+		delay(400);
+		rotateRight();
+		delay(400);
+	} else {
+		rotateinPlace(90, 1)
+	}
 
 }
 
@@ -150,7 +204,14 @@ void loop() {
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
-	Serial.println(insideRoom());
+	//se dentro de uma sala
+	if(color_clock == 1)  {
+		encostadoParede();
+
+	} else {
+		zigZag();
+	}
+
 
 }
 
