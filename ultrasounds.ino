@@ -21,8 +21,8 @@
 #define patrolTime 3
 
 //flame related
-#define flameDoubt 30
-#define flameCertain 90
+#define flameDoubt 100
+#define flameCertain 500
 
 int maximumRange = 40;
 int minimumRange = 10;
@@ -41,6 +41,16 @@ int isSearching = FALSE;
 long int rotateTimer;
 
 int globalTimer = 0;
+
+int n_walls = 12;
+float paredes[12] = {1.0f, 0.484f, 0.368f, 0.516f, 0.422f, 0.295f, 0.745f, 0.578f, 0.295f, 0.356f, 0.568f, 0.705f};
+float myMeasures[12];
+
+long int timer;
+int isCounting = FALSE;
+int counter = 0;
+
+int putFireOut = FALSE;
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
@@ -82,11 +92,12 @@ void rotateLeft(){
 }
 
 void rotateRight() {
-	Control(velocityLeft, velocityRight+offSet);
+	Control(velocityLeft, velocityRight+offSet*1.5f);
 }
 
 //degrees to rotate, side as -1 or 1 to define left or right, respectively
 void rotateInPlace(int degrees, int side) {
+	rotateTimer = millis();
 	//CAREFULL! if values are not calibrated (because of batteries), adjust 'offset'
 	Control(-offSet*side/1.4, offSet*side/1.4);
 	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
@@ -95,13 +106,13 @@ void rotateInPlace(int degrees, int side) {
 int canSeeFlames() {
 	int flameLevel = analogRead(A1);
 	if (flameLevel >= flameCertain) {
-		digitalWrite(7, HIGH);
+		//digitalWrite(7, HIGH);
 		return 1;
 	} else if (flameLevel >= flameDoubt) {
-		digitalWrite(7, LOW);
+		//digitalWrite(7, LOW);
 		return 0;
 	} else {
-		digitalWrite(7, LOW);
+		//digitalWrite(7, LOW);
 		return -1;
 	}
 }
@@ -182,49 +193,89 @@ void loop() {
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
-	Serial.println(canSeeFlames());
-
+	//Serial.println(canSeeFlames());
+/*
 	//if already was walking for more than 'patrolTime'
 	if (millis()-globalTimer >= patrolTime) {
-		/*
+
 		checkSurroundings();		//look around for flame
 		globalTimer = millis();		//update timer
-		*/
-		digitalWrite(7, HIGH);
+		
+		//digitalWrite(7, HIGH);
 	} else {
-		digitalWrite(7, LOW);
+		//digitalWrite(7, LOW);
 	}
 
 	//for DEBUG purposes, checks if 'right sensor' is seing a wall
-	checkForWalls();
-
-	if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
-		Control(0, 0);
-		//Serial.println("Rotating Right (IF)");
-		rotateTimer = millis();
-		//rotateRight();
-		rotateInPlace(90, 1);
-	} else {
-		if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
-			if(distanceLeft > WALL_DISTANCE) {
-				rotateLeft();
-				//Serial.println("Rotating Left");
-			} else if (distanceLeft < WALL_DISTANCE) {
-				rotateRight();
-				//Serial.println("Rotating Right");
-			} else {
-				//Serial.println("Moving ahead");
-				Control(FORWARD_SPEED, FORWARD_SPEED);
-			}
+	//checkForWalls();
+	*/
+	if (canSeeFlames() != 1) {
+		if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+			Control(0, 0);
+			//Serial.println("Rotating Right (IF)");
+			//rotateRight();
+			/*digitalWrite(7, HIGH);
+			if (isCounting == TRUE) {
+				myMeasures[counter] = millis() - timer;
+				Serial.println("Valor: ");
+				Serial.println(myMeasures[counter]);
+				counter++;
+			}*/
+			rotateInPlace(90, 1);
+			/*timer = millis();
+			isCounting = TRUE;
+			digitalWrite(7, LOW);*/
 		} else {
-			//Serial.println("Rotating Left");
-			rotateLeft();
+			if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+				if(distanceLeft > WALL_DISTANCE) {
+					rotateLeft();
+					//Serial.println("Rotating Left");
+				} else if (distanceLeft < WALL_DISTANCE) {
+					rotateRight();
+					//Serial.println("Rotating Right");
+				} else {
+					//Serial.println("Moving ahead");
+					Control(FORWARD_SPEED, FORWARD_SPEED);
+				}
+			} else {
+				//Serial.println("Rotating Left");
+				rotateLeft();
+			}
+		}
+	} else {
+		putFireOut = TRUE;
+		int maxMeasure;
+		int measure = analogRead(A1);
+		delay(100);
+		rotateInPlace(5, 1);
+		int measure2 = analogRead(A1);
+		delay(100);
+		rotateInPlace(10, -1);
+		int measure3 = analogRead(A1);
+
+		if (measure >= measure2 && measure >= measure3) {
+			rotateInPlace(5, 1);
+			maxMeasure = measure;
+		} else if (measure2 >= measure && measure2 >= measure3) {
+			rotateInPlace(10, 1);
+			maxMeasure = measure2;
+		} else {
+			maxMeasure = measure3;
+		}
+
+		Serial.println(measure);
+		digitalWrite(7, HIGH);
+		if (maxMeasure >= 600) {
+			Control(0, 0);
+			digitalWrite(13, HIGH);
+			delay(3000);
 		}
 	}
-	Serial.print("VALUE: ");
-	Serial.println(distanceRight);
+	//Serial.print("VALUE: ");
+	//Serial.println(distanceRight);
 
-	lastDistanceRight = distanceRight;
+	//lastDistanceRight = distanceRight;
+	delay(10);
 }
 
 
