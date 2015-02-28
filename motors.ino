@@ -1,8 +1,8 @@
 
-#define MotorB1 11
-#define MotorB2 10
-#define MotorA2 9
-#define MotorA1 8
+#define MotorDir1 11
+#define MotorDir2 10
+#define MotorEsq2 8
+#define MotorEsq1 9
 #define MaxSpeed 150
 
 void Ahead(int _velesq, int _veldir) {
@@ -39,13 +39,13 @@ void Ahead(int _velesq, int _veldir) {
 		digitalWrite(MotorEsq2, 0);
 	}
 }
-/*void setup() {
+void setup() {
 	pinMode(MotorDir1, OUTPUT);
 	pinMode(MotorDir2, OUTPUT);
 	pinMode(MotorEsq1, OUTPUT);
 	pinMode(MotorEsq2, OUTPUT);
-	Ahead(30,30);
+	Ahead(50,50);
 }
 void loop() {
 
-}*/	
+}

@@ -1,7 +1,7 @@
 #define trigPinRight 4
 #define echoPinRight 5
-#define trigPinLeft 7
-#define echoPinLeft 6
+#define trigPinLeft 2
+#define echoPinLeft 3
 #define flameSensor A1
 
 int maximumRange = 40;
@@ -36,7 +36,7 @@ void loop() {
 	durationLeft = pulseIn(echoPinLeft, HIGH);
 	int valueFlameSensor = analogRead(flameSensor);
 
-Serial.println(valueFlameSensor);
+	Serial.println(durationLeft);
 
 	//distanceRight = durationRight/58.2;
 	//distanceLeft = durationLeft/58.2;

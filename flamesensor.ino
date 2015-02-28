@@ -2,7 +2,7 @@
 // pinMode(A1, INPUT);
 // int nearLimit = 30;
 
-boolean canISeeTheFlame() {
+/*boolean canISeeTheFlame() {
 
 	int valueFlameSensor = analogRead(A1);
 
@@ -11,4 +11,4 @@ boolean canISeeTheFlame() {
 	else
 		return 0;
 
-}
+}*/
