@@ -1,4 +1,4 @@
-#define FACTOR 20
+#define offSet 20
 #define velocityRight 50
 #define velocityLeft 50
 
@@ -37,10 +37,10 @@ void Control(int velocityLeft, int velocityRight) {
 	}
 }
 
-void RotateRight(){
-	Control(velocityLeft,velocityRight-FACTOR);
+void rotateRight(){
+	Control(velocityLeft,velocityRight-offSet);
 }
 
-void RotateLeft() {
-	Control(velocityLeft-FACTOR, velocityRight);
+void rotateLeft() {
+	Control(velocityLeft-offSet, velocityRight);
 }
