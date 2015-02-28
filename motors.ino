@@ -39,7 +39,7 @@ void Ahead(int _velesq, int _veldir) {
 		digitalWrite(MotorEsq2, 0);
 	}
 }
-void setup() {
+/*void setup() {
 	pinMode(MotorDir1, OUTPUT);
 	pinMode(MotorDir2, OUTPUT);
 	pinMode(MotorEsq1, OUTPUT);
@@ -48,4 +48,4 @@ void setup() {
 }
 void loop() {
 
-}
+}*/
