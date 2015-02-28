@@ -1,7 +1,8 @@
 #define trigPinRight 4
 #define echoPinRight 5
-#define trigPinLeft 2
-#define echoPinLeft 3
+#define trigPinLeft 7
+#define echoPinLeft 6
+#define flameSensor A1
 
 int maximumRange = 40;
 int minimumRange = 10;
@@ -16,6 +17,7 @@ void setup() {
 	pinMode(echoPinLeft, INPUT);
 	pinMode(trigPinRight, OUTPUT);
 	pinMode(echoPinRight, INPUT);
+	pinMode(flameSensor, INPUT);
 }
 
 
@@ -32,14 +34,17 @@ void loop() {
 	digitalWrite(trigPinLeft, LOW);
 	durationRight  = pulseIn(echoPinRight, HIGH);
 	durationLeft = pulseIn(echoPinLeft, HIGH);
+	int valueFlameSensor = analogRead(flameSensor);
 
-	distanceRight = durationRight/58.2;
-	distanceLeft = durationLeft/58.2;
+Serial.println(valueFlameSensor);
+
+	//distanceRight = durationRight/58.2;
+	//distanceLeft = durationLeft/58.2;
 
    /*if((distanceRight >= maximumRange && distanceLeft >= maximumRange) || (distanceRight <= minimumRange && distanceLeft <= minimumRange)) {
 
 	}*/
-
+/*
 	contador+=1;
 	mediaRight+=distanceRight;
 	mediaLeft+=distanceLeft;
@@ -60,8 +65,8 @@ void loop() {
 	}
 
 	/*Serial.println("Valor do pin esquerdo: " + distanceLeft + "; Valor do pin direito: " + distanceRight);*/
-	if(contador == 1000) {
-		mediaRight/=contador;
+	//if(contador == 10){
+		/*mediaRight/=contador;
 		mediaLeft/=contador;
 		contador = 0;
 		Serial.print("mediaRight: ");
@@ -83,7 +88,9 @@ void loop() {
 		minValueLeft = 2847358.0f;
 		maxValueLeft = 0.0f;
 		maxValueRight = 0.0f;
-	}
+		*/
+	//}
+	
 
 }
 
