@@ -56,6 +56,7 @@ void loop() {
 	} else {
 		rotateLeft(AJUSTANGLE);
 	}
+}
 
 
 
