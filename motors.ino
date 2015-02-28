@@ -5,45 +5,45 @@
 #define MotorA1 8
 #define MaxSpeed 150
 
-void Ahead(int _velesq, int _veldir) {
-	if (_velesq > 0) {
-		if (_velesq > MaxSpeed){
-			_velesq = MaxSpeed;
+void Ahead(int velocityLeft, int velocityRight) {
+	if (velocityLeft > 0) {
+		if (velocityLeft > MaxSpeed){
+			velocityLeft = MaxSpeed;
 		}
-		_velesq = 255 - _velesq;
-		analogWrite(MotorDir1, _velesq);
-		digitalWrite(MotorDir2, 1);
+		velocityLeft = 255 - velocityLeft;
+		analogWrite(motorRight1, velocityLeft);
+		digitalWrite(motorRight2, 1);
 	}
 	else {
-		_velesq = _velesq * (-1);
-		if (_velesq > MaxSpeed){
-			_velesq = MaxSpeed;
+		velocityLeft = velocityLeft * (-1);
+		if (velocityLeft > MaxSpeed){
+			velocityLeft = MaxSpeed;
 		}
-		analogWrite(MotorDir1, _velesq);
-		digitalWrite(MotorDir2, 0);
+		analogWrite(motorRight1, velocityLeft);
+		digitalWrite(motorRight2, 0);
 	}
-	if (_veldir > 0) {
-		if (_veldir > MaxSpeed){
-			_veldir = MaxSpeed;
+	if  velocityRight > 0) {
+		if  velocityRight > MaxSpeed){
+		 velocityRight = MaxSpeed;
 		}
-		_veldir = 255 - _veldir;
-		analogWrite(MotorEsq1, _veldir);
-		digitalWrite(MotorEsq2, 1);
+	 velocityRight = 255 - velocityRight;
+		analogWrite(motorLeft1, velocityRight);
+		digitalWrite(motorLeft2, 1);
 	}
 	else {
-		_veldir = _veldir * (-1);
-		if (_veldir > MaxSpeed){
-			_veldir = MaxSpeed;
+	 velocityRight = velocityRight * (-1);
+		if  velocityRight > MaxSpeed){
+		 velocityRight = MaxSpeed;
 		}
-		analogWrite(MotorEsq1, _veldir);
-		digitalWrite(MotorEsq2, 0);
+		analogWrite(motorLeft1, velocityRight);
+		digitalWrite(motorLeft2, 0);
 	}
 }
 /*void setup() {
-	pinMode(MotorDir1, OUTPUT);
-	pinMode(MotorDir2, OUTPUT);
-	pinMode(MotorEsq1, OUTPUT);
-	pinMode(MotorEsq2, OUTPUT);
+	pinMode(motorRight1, OUTPUT);
+	pinMode(motorRight2, OUTPUT);
+	pinMode(motorLeft1, OUTPUT);
+	pinMode(motorLeft2, OUTPUT);
 	Ahead(30,30);
 }
 void loop() {
