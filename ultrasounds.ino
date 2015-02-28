@@ -51,6 +51,8 @@ int isCounting = FALSE;
 int counter = 0;
 
 int putFireOut = FALSE;
+int isLost = FALSE;
+int timeToLost = 5000;
 
 void Control(int velocityLeft, int velocityRight) {
 	if (velocityLeft > 0) {
@@ -210,36 +212,53 @@ void loop() {
 	//checkForWalls();
 	*/
 	if (canSeeFlames() != 1) {
-		if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
-			Control(0, 0);
-			//Serial.println("Rotating Right (IF)");
-			//rotateRight();
-			/*digitalWrite(7, HIGH);
-			if (isCounting == TRUE) {
-				myMeasures[counter] = millis() - timer;
-				Serial.println("Valor: ");
-				Serial.println(myMeasures[counter]);
-				counter++;
-			}*/
-			rotateInPlace(90, 1);
-			/*timer = millis();
-			isCounting = TRUE;
-			digitalWrite(7, LOW);*/
+		if (isLost == TRUE) {
+			Control(FORWARD_SPEED, FORWARD_SPEED);
+			if ((distanceRight <= LIMIT_MAX/2 && distanceRight != 0) || (distanceLeft <= LIMIT_MAX && distanceLeft != 0)) {
+				isLost = FALSE;
+			}
 		} else {
-			if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
-				if(distanceLeft > WALL_DISTANCE) {
-					rotateLeft();
-					//Serial.println("Rotating Left");
-				} else if (distanceLeft < WALL_DISTANCE) {
-					rotateRight();
-					//Serial.println("Rotating Right");
-				} else {
-					//Serial.println("Moving ahead");
-					Control(FORWARD_SPEED, FORWARD_SPEED);
-				}
+			if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+				Control(0, 0);
+				//Serial.println("Rotating Right (IF)");
+				//rotateRight();
+				/*digitalWrite(7, HIGH);
+				if (isCounting == TRUE) {
+					myMeasures[counter] = millis() - timer;
+					Serial.println("Valor: ");
+					Serial.println(myMeasures[counter]);
+					counter++;
+				}*/
+				rotateInPlace(90, 1);
+				/*timer = millis();
+				isCounting = TRUE;
+				digitalWrite(7, LOW);*/
 			} else {
-				//Serial.println("Rotating Left");
-				rotateLeft();
+				if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+					if(distanceLeft > WALL_DISTANCE) {
+						rotateLeft();
+						//Serial.println("Rotating Left");
+					} else if (distanceLeft < WALL_DISTANCE) {
+						rotateRight();
+						//Serial.println("Rotating Right");
+					} else {
+						//Serial.println("Moving ahead");
+						Control(FORWARD_SPEED, FORWARD_SPEED);
+					}
+				} else {
+					//Serial.println("Rotating Left");
+					rotateLeft();
+					if (isTiming == FALSE) {
+						timer = millis();
+						isTiming = TRUE;
+					} else {
+						if (millis() - timer >= timeToLost) {
+							isLost = TRUE;
+							isTiming = FALSE;
+						}
+					}
+
+				}
 			}
 		}
 	} else {
@@ -268,7 +287,10 @@ void loop() {
 		if (maxMeasure >= 600) {
 			Control(0, 0);
 			digitalWrite(13, HIGH);
-			delay(3000);
+			while (analogRead(A1) > 500) {
+				delay(10);
+			}
+			digitalWrite(13, LOW);
 		}
 	}
 	//Serial.print("VALUE: ");
