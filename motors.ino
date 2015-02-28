@@ -46,7 +46,6 @@ void Ahead(int velocityLeft, int velocityRight) {
 	pinMode(motorLeft1, OUTPUT);
 	pinMode(motorLeft2, OUTPUT);
 	Ahead(30,30);
->>>>>>> 51e734c460c238960f9a5d3d5ec1f682f89f2b22
 }
 void loop() {
 
