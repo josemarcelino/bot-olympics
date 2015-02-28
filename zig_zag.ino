@@ -10,6 +10,7 @@
 #define colorWhite 0
 
 #define FORWARD_SPEED 100
+#define TIME_BY_DEGREE 10 
 
 #define motorRight1 11
 #define motorRight2 10
@@ -172,9 +173,9 @@ void encostadoParede() {
 void zigZag() {
 	if(distanceRight >= collisionDistance) {
 		rotateLeft();
-		delay(400);
+		delay(140*TIME_BY_DEGREE);
 		rotateRight();
-		delay(400);
+		delay(140*TIME_BY_DEGREE);
 	} else {
 		rotateinPlace(90, 1)
 	}
@@ -203,6 +204,9 @@ void loop() {
 
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
+
+
+	Control(FORWARD_SPEED);
 
 	//se dentro de uma sala
 	if(color_clock == 1)  {
