@@ -110,7 +110,7 @@ void loop() {
 	distanceLeft = durationLeft/58.2;
 	distanceRight = durationRight/58.2;
 
-	if(distanceLeft <= LIMIT_MAX && distanceLeft != 0 && distanceRight > LIMIT_MAX) {
+	if(distanceLeft <= LIMIT_MAX && distanceLeft != 0 && (distanceRight > LIMIT_MAX || distanceRight == 0)) {
 		if(distanceLeft > WALL_DISTANCE) {
 			rotateLeft();
 			Serial.println("Rotating Left");
@@ -121,7 +121,7 @@ void loop() {
 			Serial.println("Moving ahead");
 			Control(50, 50);
 		}
-	} else if(distanceRight <= LIMIT_MAX && distanceRight !=0) {
+	} else if(distanceRight <= LIMIT_MAX) {
 		Control(0, 0);
 		rotateRight();
 	}else {
