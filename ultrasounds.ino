@@ -1,282 +1,315 @@
-#define trigPinRight 4
-#define echoPinRight 5
+//pin declaration
 #define trigPinLeft 2
 #define echoPinLeft 3
-#define WALL_DISTANCE 15
-#define TRUE 1
-#define FALSE 0
-#define AJUSTANGLE 15
-#define LIMIT_MAX 30
-
-#define FORWARD_SPEED 100
-
-#define motorRight1 11
-#define motorRight2 10
+#define trigPinRight 4
+#define echoPinRight 5
 #define motorLeft2 8
 #define motorLeft1 9
-#define MaxSpeed 150
-#define offSet 40
-#define TIME_BY_DEGREE 10 
+#define motorRight2 10
+#define motorRight1 11
 
-#define patrolTime 3
+//debug pins
+#define debugLedGreen 7
+#define debugLedRed 13
+
+#define TRUE 1
+#define FALSE 0
+
+#define WALL_DISTANCE 15  //distance to keep from wall
+#define LIMIT_MAX 30      //field of view (FoV) distance
+
+#define FORWARD_SPEED 100 //movement speed
+#define MaxSpeed 150      // --> variavel do marcelino
+
+#define motorCalibrationOffset 1.5f   //motor calibration variable (multiplier of left motor's velocity while turning)
+#define rotationVelocity 40           //'bonus' velocity for turning
+#define TIME_BY_DEGREE 10             //time it takes, in mimllis, to complete a degree while turning
 
 //flame related
-#define flameDoubt 100
-#define flameCertain 500
+#define flameDoubt 100    //readings above this CAN be a flame
+#define flameCertain 500  //readings above this WILL be a flame
 
-int maximumRange = 40;
-int minimumRange = 10;
-long durationRight, durationLeft, distanceRight, distanceLeft;
-long lastDistanceRight = 0;
-float mediaRight, mediaLeft, maxValueRight = 0.0f, maxValueLeft = 0.0f, minValueRight = 123125.0f, minValueLeft = 31245.0f;
-float contador = 0.0f;
-int ajustedLeft = FALSE;
-int ajustedRight = FALSE;
+#define N_UNTIL_LOST 500  //number of measures until it is lost
 
-int velocityRight = 50;
-int velocityLeft = 50;
+#define TIME_TO_CM 58.2f  //variable to convert sonar readings to cm
 
-int timeout;
-int isSearching = FALSE;
-long int rotateTimer;
+long durationRight, durationLeft;   //time until sonar signal is returned
+long distanceRight, distanceLeft;   //distance calculation from time elapsed
 
-int globalTimer = 0;
+int velocityRight = 50;   //
+int velocityLeft = 50;    //
 
-int n_walls = 12;
-float paredes[12] = {1.0f, 0.484f, 0.368f, 0.516f, 0.422f, 0.295f, 0.745f, 0.578f, 0.295f, 0.356f, 0.568f, 0.705f};
-float myMeasures[12];
+int timeout;              //sonar timeout calculated based on FoV distance
+long int rotateTimer;     //timer used to rotate 'x' degrees in-place
 
-long int timer;
-int isCounting = FALSE;
-int counter = 0;
+int isLost = FALSE;       //variable used to check if robot is lost
+int counterToLost = 0;    //variable used to set the max measures the robot can make before becoming lost
 
-int putFireOut = FALSE;
+void BruteForceRekt() {
+  
+  digitalWrite(trigPinLeft, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPinLeft, HIGH);
+  delayMicroseconds(10);
+
+  digitalWrite(trigPinLeft, LOW);
+  int echoLeft = pulseIn(echoPinLeft, HIGH, timeout);
+  
+  
+  if(echoLeft != 0 && echoLeft <= LIMIT_MAX){
+    rotateInPlace(90, 1);
+  }
+  
+  Control(FORWARD_SPEED/2, FORWARD_SPEED/2);
+  delay(100);
+  Control(0,0);
+  
+}
+
 
 void Control(int velocityLeft, int velocityRight) {
-	if (velocityLeft > 0) {
-		if (velocityLeft > MaxSpeed){
-			velocityLeft = MaxSpeed;
-		}
-		velocityLeft = 255 - velocityLeft;
-		analogWrite(motorRight1, velocityLeft);
-		digitalWrite(motorRight2, 1);
-	}
-	else {
-		velocityLeft = velocityLeft * (-1);
-		if (velocityLeft > MaxSpeed){
-			velocityLeft = MaxSpeed;
-		}
-		analogWrite(motorRight1, velocityLeft);
-		digitalWrite(motorRight2, 0);
-	}
-	if  (velocityRight > 0) {
-		if (velocityRight > MaxSpeed){
-		 	velocityRight = MaxSpeed;
-		}
-	 	velocityRight = 255 - velocityRight;
-		analogWrite(motorLeft1, velocityRight);
-		digitalWrite(motorLeft2, 1);
-	}
-	else {
-	 	velocityRight = velocityRight * (-1);
-		if (velocityRight > MaxSpeed){
-		 velocityRight = MaxSpeed;
-		}
-		analogWrite(motorLeft1, velocityRight);
-		digitalWrite(motorLeft2, 0);
-	}
+  if (velocityLeft > 0) {
+    if (velocityLeft > MaxSpeed){
+      velocityLeft = MaxSpeed;
+    }
+    velocityLeft = 255 - velocityLeft;
+    analogWrite(motorRight1, velocityLeft);
+    digitalWrite(motorRight2, 1);
+  }
+  else {
+    velocityLeft = velocityLeft * (-1);
+    if (velocityLeft > MaxSpeed){
+      velocityLeft = MaxSpeed;
+    }
+    analogWrite(motorRight1, velocityLeft);
+    digitalWrite(motorRight2, 0);
+  }
+  if  (velocityRight > 0) {
+    if (velocityRight > MaxSpeed){
+      velocityRight = MaxSpeed;
+    }
+    velocityRight = 255 - velocityRight;
+    analogWrite(motorLeft1, velocityRight);
+    digitalWrite(motorLeft2, 1);
+  }
+  else {
+    velocityRight = velocityRight * (-1);
+    if (velocityRight > MaxSpeed){
+      velocityRight = MaxSpeed;
+    }
+    analogWrite(motorLeft1, velocityRight);
+    digitalWrite(motorLeft2, 0);
+  }
 }
 
 void rotateLeft(){
-	Control(velocityLeft+offSet,velocityRight);
+  Control(velocityLeft+rotationVelocity,velocityRight);
 }
 
 void rotateRight() {
-	Control(velocityLeft, velocityRight+offSet*1.5f);
+  Control(velocityLeft, velocityRight+rotationVelocity*motorCalibrationOffset);
 }
 
 //degrees to rotate, side as -1 or 1 to define left or right, respectively
 void rotateInPlace(int degrees, int side) {
-	rotateTimer = millis();
-	//CAREFULL! if values are not calibrated (because of batteries), adjust 'offset'
-	Control(-offSet*side/1.4, offSet*side/1.4);
-	while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
+  rotateTimer = millis();
+  //CAREFULL! if values are not calibrated (because of batteries), adjust 'rotationVelocity'
+  Control(-rotationVelocity*side/1.4, rotationVelocity*side/1.4);
+  while (millis() - rotateTimer < degrees*TIME_BY_DEGREE);
 }
 
 int canSeeFlames() {
-	int flameLevel = analogRead(A1);
-	if (flameLevel >= flameCertain) {
-		//digitalWrite(7, HIGH);
-		return 1;
-	} else if (flameLevel >= flameDoubt) {
-		//digitalWrite(7, LOW);
-		return 0;
-	} else {
-		//digitalWrite(7, LOW);
-		return -1;
-	}
+  int flameLevel = analogRead(A1);
+  if (flameLevel >= flameCertain) {
+    //digitalWrite(7, HIGH);
+    return 1;
+  } 
+  else if (flameLevel >= flameDoubt) {
+    //digitalWrite(7, LOW);
+    return 0;
+  } 
+  else {
+    //digitalWrite(7, LOW);
+    return -1;
+  }
 }
 
 void setup() {
-	Serial.begin(9600);
-	pinMode(trigPinLeft, OUTPUT);
-	pinMode(echoPinLeft, INPUT);
-	pinMode(trigPinRight, OUTPUT);
-	pinMode(echoPinRight, INPUT);
-	pinMode(motorRight1, OUTPUT);
-	pinMode(motorRight2, OUTPUT);
-	pinMode(motorLeft1, OUTPUT);
-	pinMode(motorLeft2, OUTPUT);
+  Serial.begin(9600);
+  pinMode(trigPinLeft, OUTPUT);
+  pinMode(echoPinLeft, INPUT);
+  pinMode(trigPinRight, OUTPUT);
+  pinMode(echoPinRight, INPUT);
+  pinMode(motorRight1, OUTPUT);
+  pinMode(motorRight2, OUTPUT);
+  pinMode(motorLeft1, OUTPUT);
+  pinMode(motorLeft2, OUTPUT);
 
-	//flame sensor
-	pinMode(A1, INPUT);
-	//flame pin
-	pinMode(7, OUTPUT);
+  //flame sensor
+  pinMode(A1, INPUT);
+  //flame pin
+  pinMode(7, OUTPUT);
 
-	//wall pin
-	pinMode(13, OUTPUT);
+  //wall pin
+  pinMode(13, OUTPUT);
 
-	timeout = LIMIT_MAX*58.2f;
-	globalTimer = millis();
+  timeout = LIMIT_MAX*TIME_TO_CM;
+  BruteForceRekt();
 }
 
 int foundWall() {
-	//Serial.print("Wall at ");
-	//Serial.println(distanceRight);
-	return (distanceRight != 0) ? TRUE : FALSE;
+  //Serial.print("Wall at ");
+  //Serial.println(distanceRight);
+  return (distanceRight != 0) ? TRUE : FALSE;
 }
 
 //just light LED up when right sensor is seing a wall
 void checkForWalls() {
-	if (foundWall() == TRUE) {
-		digitalWrite(13, HIGH);
-	} else {
-		digitalWrite(13, LOW);
-	}
+  if (foundWall() == TRUE) {
+    digitalWrite(13, HIGH);
+  } 
+  else {
+    digitalWrite(13, LOW);
+  }
 }
 
 //slowly rotates around to check for flames
 //TODO if a flame is found, go towards it
 void checkSurroundings() {
-	/*
+  /*
 	rotateInPlace(30, 1);	//rotate 30 degrees to the right
-	//get flame readings
-	rotateInPlace(30, 1);	//rotate again
-	//get flame readings
-	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
-	*/
-	//Control(0, 0);
-	//delay(100);
+   	//get flame readings
+   	rotateInPlace(30, 1);	//rotate again
+   	//get flame readings
+   	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
+   	*/
+  //Control(0, 0);
+  //delay(100);
 }
 
 void loop() {
 
-	digitalWrite(trigPinLeft, LOW);
-	delayMicroseconds(2);
+  digitalWrite(trigPinLeft, LOW);
+  delayMicroseconds(2);
 
-	digitalWrite(trigPinLeft, HIGH);
-	delayMicroseconds(10);
+  digitalWrite(trigPinLeft, HIGH);
+  delayMicroseconds(10);
 
-	digitalWrite(trigPinLeft, LOW);
-	durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
+  digitalWrite(trigPinLeft, LOW);
+  durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
 
-	digitalWrite(trigPinRight, LOW);
-	delayMicroseconds(2);
+  digitalWrite(trigPinRight, LOW);
+  delayMicroseconds(2);
 
-	digitalWrite(trigPinRight, HIGH);
-	delayMicroseconds(10);
+  digitalWrite(trigPinRight, HIGH);
+  delayMicroseconds(10);
 
-	digitalWrite(trigPinRight, LOW);
+  digitalWrite(trigPinRight, LOW);
 
-	durationRight = pulseIn(echoPinRight, HIGH, timeout);
+  durationRight = pulseIn(echoPinRight, HIGH, timeout);
 
-	distanceLeft = durationLeft/58.2;
-	distanceRight = durationRight/58.2;
+  distanceLeft = durationLeft/TIME_TO_CM;
+  distanceRight = durationRight/TIME_TO_CM;
 
-	//Serial.println(canSeeFlames());
-/*
-	//if already was walking for more than 'patrolTime'
-	if (millis()-globalTimer >= patrolTime) {
+  if (isLost == FALSE) {
+    digitalWrite(7, LOW);
+  } 
+  else {
+    digitalWrite(7, HIGH);
+  }
 
-		checkSurroundings();		//look around for flame
-		globalTimer = millis();		//update timer
-		
-		//digitalWrite(7, HIGH);
-	} else {
-		//digitalWrite(7, LOW);
-	}
+  if (canSeeFlames() != 1) {
+    if (isLost == TRUE) {
+      Control(FORWARD_SPEED, FORWARD_SPEED);
+      if ((distanceRight <= LIMIT_MAX/2 && distanceRight != 0) || (distanceLeft <= LIMIT_MAX && distanceLeft != 0)) {
+        isLost = FALSE;
+        counterToLost = 0;
+      }
+    } 
+    else {
+      if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+        Control(0, 0);
+        
+        rotateInPlace(90, 1);
+      } 
+      else {
+        if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+          if(distanceLeft > WALL_DISTANCE) {
+            rotateLeft();
+            if ((counterToLost++) >= N_MEASURES) {
+              isLost = TRUE;
+            }
+            //Serial.println("Rotating Left");
+          } 
+          else if (distanceLeft < WALL_DISTANCE) {
+            rotateRight();
+            counterToLost = 0;
+            //Serial.println("Rotating Right");
+          } 
+          else {
+            //Serial.println("Moving ahead");
+            Control(FORWARD_SPEED, FORWARD_SPEED);
+            counterToLost = 0;
+          }
+        } 
+        else {
+          //Serial.println("Rotating Left");
+          rotateLeft();
+          if ((counterToLost++) >= N_MEASURES) {
+            isLost = TRUE;
+          }
+        }
+      }
+    }
+  } 
+  else {
+    int maxMeasure;
+    int measure = analogRead(A1);
+    delay(100);
+    rotateInPlace(5, 1);
+    int measure2 = analogRead(A1);
+    delay(100);
+    rotateInPlace(10, -1);
+    int measure3 = analogRead(A1);
 
-	//for DEBUG purposes, checks if 'right sensor' is seing a wall
-	//checkForWalls();
-	*/
-	if (canSeeFlames() != 1) {
-		if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
-			Control(0, 0);
-			//Serial.println("Rotating Right (IF)");
-			//rotateRight();
-			/*digitalWrite(7, HIGH);
-			if (isCounting == TRUE) {
-				myMeasures[counter] = millis() - timer;
-				Serial.println("Valor: ");
-				Serial.println(myMeasures[counter]);
-				counter++;
-			}*/
-			rotateInPlace(90, 1);
-			/*timer = millis();
-			isCounting = TRUE;
-			digitalWrite(7, LOW);*/
-		} else {
-			if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
-				if(distanceLeft > WALL_DISTANCE) {
-					rotateLeft();
-					//Serial.println("Rotating Left");
-				} else if (distanceLeft < WALL_DISTANCE) {
-					rotateRight();
-					//Serial.println("Rotating Right");
-				} else {
-					//Serial.println("Moving ahead");
-					Control(FORWARD_SPEED, FORWARD_SPEED);
-				}
-			} else {
-				//Serial.println("Rotating Left");
-				rotateLeft();
-			}
-		}
-	} else {
-		putFireOut = TRUE;
-		int maxMeasure;
-		int measure = analogRead(A1);
-		delay(100);
-		rotateInPlace(5, 1);
-		int measure2 = analogRead(A1);
-		delay(100);
-		rotateInPlace(10, -1);
-		int measure3 = analogRead(A1);
+    if (measure >= measure2 && measure >= measure3) {
+      rotateInPlace(5, 1);
+      maxMeasure = measure;
+    } 
+    else if (measure2 >= measure && measure2 >= measure3) {
+      rotateInPlace(10, 1);
+      maxMeasure = measure2;
+    } 
+    else {
+      maxMeasure = measure3;
+    }
 
-		if (measure >= measure2 && measure >= measure3) {
-			rotateInPlace(5, 1);
-			maxMeasure = measure;
-		} else if (measure2 >= measure && measure2 >= measure3) {
-			rotateInPlace(10, 1);
-			maxMeasure = measure2;
-		} else {
-			maxMeasure = measure3;
-		}
-
-		Serial.println(measure);
-		digitalWrite(7, HIGH);
-		if (maxMeasure >= 600) {
-			Control(0, 0);
-			digitalWrite(13, HIGH);
-			delay(3000);
-		}
-	}
-	//Serial.print("VALUE: ");
-	//Serial.println(distanceRight);
-
-	//lastDistanceRight = distanceRight;
-	delay(10);
+    Serial.println(measure);
+    digitalWrite(7, HIGH);
+    if (maxMeasure >= 600) {
+      Control(0, 0);
+      digitalWrite(13, HIGH);
+      while (analogRead(A1) > 200) {
+        delay(10);
+      }
+      digitalWrite(13, LOW);
+    }
+  }
+  delay(10);
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
