@@ -51,7 +51,7 @@ int counterToLost = 0;    //variable used to set the max measures the robot can 
 
 int isInRoom = FALSE;
 int howManyWhiteLines = 0; //how many times passed inside on the white line
-int 1stTimeInIsle = 1;
+int firstTimeInIsle = 1;
 
 void goToFirstRoom() {
   
@@ -220,13 +220,13 @@ void checkSurroundings() {
 void loop() {
 
   if(howManyWhiteLines != 8){
-    if(howManyWhiteLines == 2 && 1stTimeInIsle == 1)
+    if(howManyWhiteLines == 2 && firstTimeInIsle == 1)
       {
         Control(velocityRight, velocityLeft);
         delay(800);
         rotateInPlace(50, 1);
         delay(2000);
-        1stTimeInIsle = 0;
+        firstTimeInIsle = 0;
         
       }
     isInsideTheRoom();
