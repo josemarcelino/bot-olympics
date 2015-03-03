@@ -33,8 +33,8 @@
 
 #define TIME_TO_CM 58.2f  //variable to convert sonar readings to cm
 
-#define WHITE_MIN_VALUE 400
-#define BLACK_MAX_VALUE 100
+#define WHITE_MIN_VALUE 50
+#define BLACK_MAX_VALUE 30
 #define MAX_COLOUR_VALUE 500
 
 long durationRight, durationLeft;   //time until sonar signal is returned
