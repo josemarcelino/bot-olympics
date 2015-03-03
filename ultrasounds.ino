@@ -340,6 +340,13 @@ void loop() {
   }
   delay(10);
   }
+  else if (howManyWhiteLines == 9){
+    Control(velocityLeft, velocityRight);
+    delay(100);
+  }
+  else {
+    Control(0,0);
+  }
 }
 
 
