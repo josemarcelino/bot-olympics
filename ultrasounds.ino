@@ -91,6 +91,7 @@ void isInsideTheRoom() {
   
     //digitalWrite(13, HIGH);
     //digitalWrite(13, LOW);
+    delay(10);
 }
 
 
