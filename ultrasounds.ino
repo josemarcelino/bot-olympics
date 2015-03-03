@@ -33,7 +33,7 @@
 
 #define TIME_TO_CM 58.2f  //variable to convert sonar readings to cm
 
-#define WHITE_MIN_VALUE 290
+#define WHITE_MIN_VALUE 400
 #define BLACK_MAX_VALUE 100
 #define MAX_COLOUR_VALUE 500
 
@@ -50,6 +50,7 @@ int isLost = FALSE;       //variable used to check if robot is lost
 int counterToLost = 0;    //variable used to set the max measures the robot can make before becoming lost
 
 int isInRoom = FALSE;
+int howManyWhiteLines = 0;
 
 void goToFirstRoom() {
   
@@ -62,9 +63,6 @@ void goToFirstRoom() {
   digitalWrite(trigPinLeft, LOW);
   int echoLeft = pulseIn(echoPinLeft, HIGH, timeout);
   
-  /*Serial.print("ECHO LEFT: ");
-  Serial.println(echoLeft);*/
-
   int echoDistance = echoLeft/TIME_TO_CM;
   
   if(echoDistance != 0 && echoDistance <= LIMIT_MAX){
@@ -81,36 +79,19 @@ void goToFirstRoom() {
 void isInsideTheRoom() {
   int valueColourSensor = analogRead(A0);
 
-  if(valueColourSensor < MAX_COLOUR_VALUE){
     if(valueColourSensor > WHITE_MIN_VALUE) {
       delay(100);
       if(isInRoom == FALSE){
         checkSurroundings();
       }
       isInRoom = 1 - isInRoom;
+      howManyWhiteLines++;
     }
-  }
+  
     //digitalWrite(13, HIGH);
     //digitalWrite(13, LOW);
 }
 
-boolean isBackIntoStart() {
-
-	int valueColourSensor[3];
-
-	valueColourSensor[0] = analogRead(A0);
-	delay(100);
-	valueColourSensor[1] = analogRead(A0);
-	delay(100);
-	valueColourSensor[2] = analogRead(A0);
-	delay(100);
-
-	if(valueColourSensor[0] > WHITE_MIN_VALUE && valueColourSensor[1] > WHITE_MIN_VALUE && valueColourSensor[2]){
-		return TRUE;
-	}
-
-	return FALSE;
-}
 
 int putFireOut = FALSE;
 int timeToLost = 5000;
@@ -236,7 +217,9 @@ void checkSurroundings() {
 
 void loop() {
 
-  isInsideTheRoom();
+  if(howManyWhiteLines != 8){
+    isInsideTheRoom();
+
 
   if(isInRoom == TRUE){
     digitalWrite(13, HIGH);
@@ -356,6 +339,7 @@ void loop() {
     }
   }
   delay(10);
+  }
 }
 
 
