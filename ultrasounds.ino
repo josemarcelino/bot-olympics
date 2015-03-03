@@ -77,6 +77,7 @@ void goToFirstRoom() {
   
 }
 
+
 void isInsideTheRoom() {
   int valueColourSensor = analogRead(A0);
 
@@ -91,6 +92,24 @@ void isInsideTheRoom() {
   }
     //digitalWrite(13, HIGH);
     //digitalWrite(13, LOW);
+}
+
+boolean isBackIntoStart() {
+
+	int valueColourSensor[3];
+
+	valueColourSensor[0] = analogRead(A0);
+	delay(100);
+	valueColourSensor[1] = analogRead(A0);
+	delay(100);
+	valueColourSensor[2] = analogRead(A0);
+	delay(100);
+
+	if(valueColourSensor[0] > WHITE_MIN_VALUE && valueColourSensor[1] > WHITE_MIN_VALUE && valueColourSensor[2]){
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 int putFireOut = FALSE;
