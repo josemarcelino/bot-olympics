@@ -223,9 +223,9 @@ void loop() {
     if(howManyWhiteLines == 2 && 1stTimeInIsle == 1)
       {
         Control(velocityRight, velocityLeft);
-        delay(700);
-        rotateLeft();
-        delay(400);
+        delay(800);
+        rotateInPlace(50, 1);
+        delay(2000);
         1stTimeInIsle = 0;
         
       }
