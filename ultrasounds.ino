@@ -50,7 +50,8 @@ int isLost = FALSE;       //variable used to check if robot is lost
 int counterToLost = 0;    //variable used to set the max measures the robot can make before becoming lost
 
 int isInRoom = FALSE;
-int howManyWhiteLines = 0;
+int howManyWhiteLines = 0; //how many times passed inside on the white line
+
 
 void goToFirstRoom() {
   
@@ -218,6 +219,13 @@ void checkSurroundings() {
 void loop() {
 
   if(howManyWhiteLines != 8){
+    if(howManyWhiteLines == 2)
+      {
+        Control(velocityRight, velocityLeft);
+        delay(700);
+        rotateLeft();
+        delay(400);
+      }
     isInsideTheRoom();
 
 
