@@ -33,6 +33,10 @@
 
 #define TIME_TO_CM 58.2f  //variable to convert sonar readings to cm
 
+#define WHITE_MIN_VALUE 290
+#define BLACK_MAX_VALUE 100
+#define MAX_COLOUR_VALUE 500
+
 long durationRight, durationLeft;   //time until sonar signal is returned
 long distanceRight, distanceLeft;   //distance calculation from time elapsed
 
@@ -44,6 +48,8 @@ long int rotateTimer;     //timer used to rotate 'x' degrees in-place
 
 int isLost = FALSE;       //variable used to check if robot is lost
 int counterToLost = 0;    //variable used to set the max measures the robot can make before becoming lost
+
+int isInRoom = FALSE;
 
 void BruteForceRekt() {
   
@@ -62,9 +68,25 @@ void BruteForceRekt() {
   }
   
   Control(FORWARD_SPEED/2, FORWARD_SPEED/2);
-  delay(100);
+  delay(2000);
   Control(0,0);
   
+}
+
+void isInsideTheRoom() {
+  int valueColourSensor = analogRead(A0);
+
+  if(valueColourSensor < MAX_COLOUR_VALUE){
+    if(valueColourSensor > WHITE_MIN_VALUE) {
+      delay(100);
+      if(isInRoom == FALSE){
+        checkSurroundings();
+      }
+      isInRoom = 1 - isInRoom;
+    }
+  }
+    //digitalWrite(13, HIGH);
+    //digitalWrite(13, LOW);
 }
 
 
@@ -146,6 +168,7 @@ void setup() {
   pinMode(motorLeft1, OUTPUT);
   pinMode(motorLeft2, OUTPUT);
 
+  pinMode(A0, INPUT);
   //flame sensor
   pinMode(A1, INPUT);
   //flame pin
@@ -177,18 +200,27 @@ void checkForWalls() {
 //slowly rotates around to check for flames
 //TODO if a flame is found, go towards it
 void checkSurroundings() {
-  /*
-	rotateInPlace(30, 1);	//rotate 30 degrees to the right
+  Control(0, 0);
+	 rotateInPlace(30, 1);	//rotate 30 degrees to the right
    	//get flame readings
    	rotateInPlace(30, 1);	//rotate again
    	//get flame readings
    	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
-   	*/
-  //Control(0, 0);
-  //delay(100);
+   
 }
 
 void loop() {
+
+  isInsideTheRoom();
+
+  if(isInRoom == TRUE){
+      digitalWrite(13, HIGH);
+  } else {
+    digitalWrite(13, LOW);
+  }
+
+  Serial.print("COLOR: ");
+  Serial.println(analogRead(A0));
 
   digitalWrite(trigPinLeft, LOW);
   delayMicroseconds(2);
@@ -237,7 +269,7 @@ void loop() {
         if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
           if(distanceLeft > WALL_DISTANCE) {
             rotateLeft();
-            if ((counterToLost++) >= N_MEASURES) {
+            if ((counterToLost++) >= N_UNTIL_LOST) {
               isLost = TRUE;
             }
             //Serial.println("Rotating Left");
@@ -256,7 +288,7 @@ void loop() {
         else {
           //Serial.println("Rotating Left");
           rotateLeft();
-          if ((counterToLost++) >= N_MEASURES) {
+          if ((counterToLost++) >= N_UNTIL_LOST) {
             isLost = TRUE;
           }
         }
