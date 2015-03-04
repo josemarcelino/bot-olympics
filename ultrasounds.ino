@@ -210,11 +210,49 @@ void checkForWalls() {
 void checkSurroundings() {
   Control(0, 0);
 	 rotateInPlace(30, 1);	//rotate 30 degrees to the right
-   	//get flame readings
+   	if (canSeeFlames() == TRUE) {
+      putFireOut();
+    }
    	rotateInPlace(30, 1);	//rotate again
-   	//get flame readings
+   	if (canSeeFlames() == TRUE) {
+      putFireOut();
+    }
    	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
    
+}
+
+void putFireOut() {
+  int maxMeasure;
+  int measure = analogRead(A1);
+  delay(100);
+  rotateInPlace(5, 1);
+  int measure2 = analogRead(A1);
+  delay(100);
+  rotateInPlace(10, -1);
+  int measure3 = analogRead(A1);
+
+  if (measure >= measure2 && measure >= measure3) {
+    rotateInPlace(5, 1);
+    maxMeasure = measure;
+  } 
+  else if (measure2 >= measure && measure2 >= measure3) {
+    rotateInPlace(10, 1);
+    maxMeasure = measure2;
+  } 
+  else {
+    maxMeasure = measure3;
+  }
+
+  //Serial.println(measure);
+  digitalWrite(7, HIGH);
+  if (maxMeasure >= 600) {
+    Control(0, 0);
+    digitalWrite(13, HIGH);
+    while (analogRead(A1) > 200) {
+      delay(10);
+    }
+    digitalWrite(13, LOW);
+  }
 }
 
 void loop() {
@@ -317,37 +355,7 @@ void loop() {
     }
   } 
   else {
-    int maxMeasure;
-    int measure = analogRead(A1);
-    delay(100);
-    rotateInPlace(5, 1);
-    int measure2 = analogRead(A1);
-    delay(100);
-    rotateInPlace(10, -1);
-    int measure3 = analogRead(A1);
-
-    if (measure >= measure2 && measure >= measure3) {
-      rotateInPlace(5, 1);
-      maxMeasure = measure;
-    } 
-    else if (measure2 >= measure && measure2 >= measure3) {
-      rotateInPlace(10, 1);
-      maxMeasure = measure2;
-    } 
-    else {
-      maxMeasure = measure3;
-    }
-
-    //Serial.println(measure);
-    digitalWrite(7, HIGH);
-    if (maxMeasure >= 600) {
-      Control(0, 0);
-      digitalWrite(13, HIGH);
-      while (analogRead(A1) > 200) {
-        delay(10);
-      }
-      digitalWrite(13, LOW);
-    }
+    putFireOut();
   }
   delay(10);
   }
