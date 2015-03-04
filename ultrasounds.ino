@@ -26,8 +26,8 @@
 #define TIME_BY_DEGREE 10             //time it takes, in mimllis, to complete a degree while turning
 
 //flame related
-#define flameDoubt 100    //readings above this CAN be a flame
-#define flameCertain 500  //readings above this WILL be a flame
+#define flameDoubt 30   //readings above this CAN be a flame
+#define flameCertain 40  //readings above this WILL be a flame
 
 #define N_UNTIL_LOST 500  //number of measures until it is lost
 
@@ -224,8 +224,11 @@ void loop() {
       {
         Control(velocityRight, velocityLeft);
         delay(800);
-        rotateInPlace(50, 1);
+        rotateInPlace(60, 1);
+        Control(velocityRight, velocityLeft);
+        //digitalWrite(7, HIGH);
         delay(2000);
+        //digitalWrite(7,LOW);
         firstTimeInIsle = 0;
         
       }
@@ -239,9 +242,9 @@ void loop() {
   }
 
   //int testColor = analogRead(A0);
-  Serial.print("COLOR: ");
+  Serial.print("FLAME: ");
   delay(100);
-  Serial.println(analogRead(A0));
+  Serial.println(analogRead(A1));
 
   digitalWrite(trigPinLeft, LOW);
   delayMicroseconds(2);
@@ -325,7 +328,7 @@ void loop() {
     delay(100);
     rotateInPlace(10, -1);
     int measure3 = analogRead(A1);
-
+		
     if (measure >= measure2 && measure >= measure3) {
       rotateInPlace(5, 1);
       maxMeasure = measure;
@@ -340,23 +343,26 @@ void loop() {
 
     //Serial.println(measure);
     digitalWrite(7, HIGH);
-    if (maxMeasure >= 600) {
+    if (maxMeasure >= 40) {
       Control(0, 0);
       digitalWrite(13, HIGH);
-      while (analogRead(A1) > 200) {
-        delay(10);
+      while (analogRead(A1) > 50) {
+        delay(1500);
       }
+      
       digitalWrite(13, LOW);
+      delay(100);
+      digitalWrite((7), LOW);
+      
     }
   }
   delay(10);
   }
-  else if (howManyWhiteLines == 9){
-    Control(velocityLeft, velocityRight);
-    delay(100);
-  }
   else {
+    Control(velocityLeft, velocityRight);
+    delay(200);
     Control(0,0);
+
   }
 }
 
