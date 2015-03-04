@@ -209,15 +209,15 @@ void checkForWalls() {
 //TODO if a flame is found, go towards it
 void checkSurroundings() {
   Control(0, 0);
-	 rotateInPlace(30, 1);	//rotate 30 degrees to the right
-   	if (canSeeFlames() == TRUE) {
-      putFireOut();
-    }
-   	rotateInPlace(30, 1);	//rotate again
-   	if (canSeeFlames() == TRUE) {
-      putFireOut();
-    }
-   	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
+  rotateInPlace(30, 1);	//rotate 30 degrees to the right
+ 	if (canSeeFlames() == TRUE) {
+    putFireOut();
+  }
+ 	rotateInPlace(30, 1);	//rotate again
+ 	if (canSeeFlames() == TRUE) {
+    putFireOut();
+  }
+ 	rotateInPlace(60, -1);	//if nothing was found, get back to patrolling
    
 }
 
@@ -258,106 +258,104 @@ void putFireOut() {
 void loop() {
 
   if(howManyWhiteLines != 8){
-    if(howManyWhiteLines == 2 && firstTimeInIsle == 1)
-      {
-        Control(velocityRight, velocityLeft);
-        delay(800);
-        rotateInPlace(50, 1);
-        delay(2000);
-        firstTimeInIsle = 0;
-        
-      }
+    if(howManyWhiteLines == 2 && firstTimeInIsle == 1){
+      Control(velocityRight, velocityLeft);
+      delay(800);
+      rotateInPlace(50, 1);
+      delay(2000);
+      firstTimeInIsle = 0;
+    }
     isInsideTheRoom();
 
 
-  if(isInRoom == TRUE){
-    digitalWrite(13, HIGH);
-  } else {
-    digitalWrite(13, LOW);
-  }
+    if(isInRoom == TRUE){
+      digitalWrite(13, HIGH);
+    } else {
+      digitalWrite(13, LOW);
+    }
 
-  //int testColor = analogRead(A0);
-  Serial.print("COLOR: ");
-  delay(100);
-  Serial.println(analogRead(A0));
+    //int testColor = analogRead(A0);
+    Serial.print("COLOR: ");
+    delay(100);
+    Serial.println(analogRead(A0));
 
-  digitalWrite(trigPinLeft, LOW);
-  delayMicroseconds(2);
+    digitalWrite(trigPinLeft, LOW);
+    delayMicroseconds(2);
 
-  digitalWrite(trigPinLeft, HIGH);
-  delayMicroseconds(10);
+    digitalWrite(trigPinLeft, HIGH);
+    delayMicroseconds(10);
 
-  digitalWrite(trigPinLeft, LOW);
-  durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
+    digitalWrite(trigPinLeft, LOW);
+    durationLeft = pulseIn(echoPinLeft, HIGH, timeout);
 
-  digitalWrite(trigPinRight, LOW);
-  delayMicroseconds(2);
+    digitalWrite(trigPinRight, LOW);
+    delayMicroseconds(2);
 
-  digitalWrite(trigPinRight, HIGH);
-  delayMicroseconds(10);
+    digitalWrite(trigPinRight, HIGH);
+    delayMicroseconds(10);
 
-  digitalWrite(trigPinRight, LOW);
+    digitalWrite(trigPinRight, LOW);
 
-  durationRight = pulseIn(echoPinRight, HIGH, timeout);
+    durationRight = pulseIn(echoPinRight, HIGH, timeout);
 
-  distanceLeft = durationLeft/TIME_TO_CM;
-  distanceRight = durationRight/TIME_TO_CM;
+    distanceLeft = durationLeft/TIME_TO_CM;
+    distanceRight = durationRight/TIME_TO_CM;
 
-  if (isLost == FALSE) {
-    digitalWrite(7, LOW);
-  } 
-  else {
-    digitalWrite(7, HIGH);
-  }
-
-  if (canSeeFlames() != 1) {
-    if (isLost == TRUE) {
-      Control(FORWARD_SPEED, FORWARD_SPEED);
-      if ((distanceRight <= LIMIT_MAX/2 && distanceRight != 0) || (distanceLeft <= LIMIT_MAX && distanceLeft != 0)) {
-        isLost = FALSE;
-        counterToLost = 0;
-      }
+    if (isLost == FALSE) {
+      digitalWrite(7, LOW);
     } 
     else {
-      if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
-        Control(0, 0);
-        
-        rotateInPlace(90, 1);
+      digitalWrite(7, HIGH);
+    }
+
+    if (canSeeFlames() != 1) {
+      if (isLost == TRUE) {
+        Control(FORWARD_SPEED, FORWARD_SPEED);
+        if ((distanceRight <= LIMIT_MAX/2 && distanceRight != 0) || (distanceLeft <= LIMIT_MAX && distanceLeft != 0)) {
+          isLost = FALSE;
+          counterToLost = 0;
+        }
       } 
       else {
-        if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
-          if(distanceLeft > WALL_DISTANCE) {
+        if (distanceRight <= LIMIT_MAX/2 && distanceRight != 0) {
+          Control(0, 0);
+          
+          rotateInPlace(90, 1);
+        } 
+        else {
+          if(distanceLeft <= LIMIT_MAX && distanceLeft != 0) {
+            if(distanceLeft > WALL_DISTANCE) {
+              rotateLeft();
+              if ((counterToLost++) >= N_UNTIL_LOST) {
+                isLost = TRUE;
+              }
+              //Serial.println("Rotating Left");
+            } 
+            else if (distanceLeft < WALL_DISTANCE) {
+              rotateRight();
+              counterToLost = 0;
+              //Serial.println("Rotating Right");
+            } 
+            else {
+              //Serial.println("Moving ahead");
+              Control(FORWARD_SPEED, FORWARD_SPEED);
+              counterToLost = 0;
+            }
+          } 
+          else {
+            //Serial.println("Rotating Left");
             rotateLeft();
             if ((counterToLost++) >= N_UNTIL_LOST) {
               isLost = TRUE;
             }
-            //Serial.println("Rotating Left");
-          } 
-          else if (distanceLeft < WALL_DISTANCE) {
-            rotateRight();
-            counterToLost = 0;
-            //Serial.println("Rotating Right");
-          } 
-          else {
-            //Serial.println("Moving ahead");
-            Control(FORWARD_SPEED, FORWARD_SPEED);
-            counterToLost = 0;
-          }
-        } 
-        else {
-          //Serial.println("Rotating Left");
-          rotateLeft();
-          if ((counterToLost++) >= N_UNTIL_LOST) {
-            isLost = TRUE;
           }
         }
       }
+    } 
+    else {
+      putFireOut();
     }
-  } 
-  else {
-    putFireOut();
-  }
-  delay(10);
+    delay(10);
   }
   else if (howManyWhiteLines == 9){
     Control(velocityLeft, velocityRight);
