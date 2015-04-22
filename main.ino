@@ -3,7 +3,7 @@
 #define TRUE 1
 #define FALSE 0
 
-typedef struct {
+struct pins {
 	int motorRight 1;
 	int motorLeft 2;
 } pinList;
@@ -13,9 +13,6 @@ motorEngine* curEngine;
 //switch between engines for different sets of speeds
 motorEngine regularEngine;
 motorEngine acceleratedEngine;
-
-//pin-out container
-pinList pins;
 
 void setup() {
 	//engines setup
